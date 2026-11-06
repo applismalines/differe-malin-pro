@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Différé Malin Pro</title>
+<meta name="description" content="Le différé à régler sur vos appareils pour les lancer pendant les heures les moins chères.">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#121410">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Différé Pro">
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font-size:14px;-webkit-tap-highlight-color:transparent}
+img{max-width:100%}[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Share+Tech+Mono&display=swap">
+<style>
+/* Layout: une colonne de téléphone, écran "machine" en tête, barre d'onglets en bas */
+:root{
+  --bg:#ffffff; --surface:#f3f5fa; --fg:#151a2e; --muted:#5b627d; --line:#d6dbe8;
+  --hsc:#3a3eb4; --accent:#3a3eb4; --hc:#2b8a81; --hp:#cf7a26; --none:#c9cedc;
+  --lcd-bg:#121410; --lcd-fg:#ffb547; --lcd-dim:#7a6430;
+  --ok:#23806f; --warn:#b4462f; --pro:#8a5a00; --pro-bg:#fff3d6;
+  --t-bleu:#2f6fd6; --t-blanc:#8b93a8; --t-rouge:#c8322b;
+  --display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif;
+  --mono:"Share Tech Mono",ui-monospace,"Consolas",monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#000000; --surface:#11131c; --fg:#eceef6; --muted:#9aa1bd; --line:#262b3e;
+  --hsc:#8f93f7; --accent:#8f93f7; --hc:#5cc6bb; --hp:#efa257; --none:#3a4060;
+  --lcd-bg:#08090a; --lcd-fg:#ffb547; --lcd-dim:#6a5526; --ok:#5cc6bb; --warn:#f08a70; --pro:#ffc861; --pro-bg:#2c2412;
+  --t-bleu:#6c9ff0; --t-blanc:#c3c8d6; --t-rouge:#f0665e; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#000000; --surface:#11131c; --fg:#eceef6; --muted:#9aa1bd; --line:#262b3e;
+  --hsc:#8f93f7; --accent:#8f93f7; --hc:#5cc6bb; --hp:#efa257; --none:#3a4060;
+  --lcd-bg:#08090a; --lcd-fg:#ffb547; --lcd-dim:#6a5526; --ok:#5cc6bb; --warn:#f08a70; --pro:#ffc861; --pro-bg:#2c2412;
+  --t-bleu:#6c9ff0; --t-blanc:#c3c8d6; --t-rouge:#f0665e; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.45}
+.wrap{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 110px;display:flex;flex-direction:column;gap:16px}
+h1{font-family:var(--display);font-weight:800;font-size:1.5rem;margin:0;letter-spacing:-.01em;text-wrap:balance}
+h2{font-family:var(--display);font-weight:600;font-size:1.1rem;margin:0}
+.eyebrow{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+.muted{color:var(--muted)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.between{justify-content:space-between}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+button{font:inherit;color:inherit;cursor:pointer}
+a{color:var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-width:0}
+input[type=number]{width:5em}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--bg);flex-wrap:wrap}
+.seg button{border:0;background:none;padding:6px 10px;border-radius:999px;font-size:.86rem;white-space:nowrap}
+.seg button[aria-pressed=true]{background:var(--fg);color:var(--bg);font-weight:700}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 13px;font-size:.92rem;display:inline-flex;gap:6px;align-items:center}
+.chip[aria-pressed=true]{border-color:var(--accent);background:var(--accent);color:var(--surface);font-weight:700}
+.chip .star{color:var(--hp)}
+.chip[aria-pressed=true] .star,.chip[aria-pressed=true] .muted{color:inherit}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 14px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:6px;color:var(--fg)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.btn.danger{color:var(--warn)}
+.btn.small{padding:5px 10px;font-size:.85rem}
+.icon-btn{border:0;background:none;padding:6px 8px;border-radius:8px;color:var(--muted);font-size:1.1rem;line-height:1}
+.badge-pro{font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--pro);background:var(--pro-bg);border-radius:6px;padding:2px 6px}
+
+.lcd{background:var(--lcd-bg);border-radius:18px;padding:18px 20px;color:var(--lcd-fg);display:flex;flex-direction:column;gap:6px;box-shadow:inset 0 0 0 3px #2a2c26,0 6px 20px rgba(0,0,0,.18)}
+.lcd .lbl{font-family:var(--mono);font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--lcd-dim)}
+.lcd .big{font-family:var(--mono);font-size:clamp(3.6rem,20vw,6.2rem);line-height:1;letter-spacing:.02em;text-shadow:0 0 18px rgba(255,181,71,.35)}
+.lcd .big small{font-size:.45em;margin-left:.1em}
+.lcd .times{font-family:var(--mono);font-size:1.05rem;display:flex;gap:18px;flex-wrap:wrap;color:var(--lcd-dim)}
+.lcd .times b{font-weight:400;color:var(--lcd-fg)}
+.lcd.off .big{color:var(--lcd-dim);text-shadow:none}
+.saving{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;font-variant-numeric:tabular-nums}
+.saving strong{font-family:var(--display);font-size:1.5rem;color:var(--ok)}
+.status{display:inline-flex;align-items:center;gap:8px;font-size:.9rem}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
+.t-hsc{background:var(--hsc)} .t-hc{background:var(--hc)} .t-hp{background:var(--hp)} .t-none{background:var(--none)}
+.tempo{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:.92rem}
+.tpill{border-radius:999px;padding:3px 10px;font-weight:700;font-size:.8rem;color:#fff;text-transform:uppercase;letter-spacing:.05em}
+.tp-bleu{background:var(--t-bleu)} .tp-blanc{background:var(--t-blanc);color:#141824} .tp-rouge{background:var(--t-rouge)} .tp-inconnu{background:var(--none);color:var(--fg)}
+.banner-rouge{border:2px solid var(--t-rouge)}
+
+.tl{position:relative;padding-top:22px;padding-bottom:22px}
+.tl-bar{display:flex;height:22px;border-radius:6px;overflow:hidden}
+.tl-bar div{height:100%}
+.tl-mark{position:absolute;top:14px;bottom:14px;width:2px;background:var(--fg)}
+.tl-mark span{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:.7rem;white-space:nowrap;font-weight:700}
+.tl-mark.cyc{background:none;border:2px solid var(--fg);border-radius:4px;top:17px;bottom:17px;width:auto}
+.tl-ticks{position:absolute;left:0;right:0;bottom:0;height:16px}
+.tl-ticks span{position:absolute;transform:translateX(-50%);font-size:.7rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.82rem;color:var(--muted)}
+.legend span{display:inline-flex;gap:6px;align-items:center}
+.note{font-size:.88rem;color:var(--muted);margin:0}
+.alert{border-left:3px solid var(--warn);padding:4px 0 4px 12px;font-size:.95rem;margin:0}
+
+.list{display:flex;flex-direction:column;gap:10px}
+.cycle{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;border-bottom:1px solid var(--line);padding-bottom:10px}
+.cycle .dur{grid-column:2/4;display:flex;gap:6px;align-items:center;font-size:.9rem;color:var(--muted);flex-wrap:wrap}
+.star-btn{font-size:1.4rem;border:0;background:none;color:var(--none);padding:4px}
+.star-btn[aria-pressed=true]{color:var(--hp)}
+.range{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.range input[type=time]{width:8.4em}
+.group{display:flex;flex-direction:column;gap:6px}
+.group h3{margin:0;font-size:.9rem;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.field{display:flex;flex-direction:column;gap:4px;font-size:.88rem;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid2 input,.grid2 select{width:100%}
+.check{display:flex;gap:8px;align-items:center;font-size:.92rem}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{display:flex;flex-direction:column;gap:2px}
+.stat b{font-family:var(--display);font-size:1.35rem;font-variant-numeric:tabular-nums}
+.hist{display:grid;grid-template-columns:1fr auto auto;gap:6px 12px;align-items:center;font-size:.92rem;font-variant-numeric:tabular-nums}
+.hist .when{color:var(--muted);font-size:.8rem}
+.pro-card{border:1px dashed var(--pro);background:var(--pro-bg)}
+.pro-card ul{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:4px}
+.locked{opacity:.55}
+.swatches{display:flex;flex-wrap:wrap;gap:8px}
+.sw{width:34px;height:34px;border-radius:50%;border:2px solid var(--surface);box-shadow:0 0 0 1px var(--line);padding:0;position:relative;display:inline-flex;align-items:center;justify-content:center}
+.sw[aria-pressed=true]{box-shadow:0 0 0 3px var(--fg)}
+.sw-free{background:conic-gradient(#c8322b,#e0b31b,#3f9a3a,#1f9bd1,#6c4bd8,#c23a7a,#c8322b);color:#fff;font-weight:700;cursor:pointer;text-shadow:0 0 3px #000}
+.sw-free input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;border:0;padding:0}
+
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px);z-index:5}
+nav.tabs button{flex:1;max-width:160px;border:0;background:none;padding:12px 4px 14px;font-weight:700;color:var(--muted);font-size:.88rem;border-top:3px solid transparent}
+nav.tabs button[aria-current=page]{color:var(--accent);border-top-color:var(--accent)}
+</style>
+
+<div class="wrap" id="app"></div>
+<nav class="tabs" id="tabs"></nav>
+
+<script>
+const BUILD_PRO=true;
+/* Version gratuite : essai Pro de 7 jours, puis fonctions Pro verrouillées.
+   La version Pro est une appli payante séparée ; le transfert des réglages passe par un code à copier. */
+const TRIAL_DAYS=7, FREE_CYCLES=3, PRICE_LABEL='2,99 €';
+const PRO_STORE_URL='https://play.google.com/store/apps/details?id=fr.differemalin.pro'; // à remplacer par l'identifiant réel
+const K=BUILD_PRO?'dlp-':'dlf-';
+function lsGet(k){try{return localStorage.getItem(K+k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(K+k,v)}catch(e){}}
+let trialStart=null;
+if(!BUILD_PRO){const t=+lsGet('trial');if(t)trialStart=t;else{const n=Date.now();lsSet('trial',String(n));if(lsGet('trial'))trialStart=n}}
+const trialLeft=()=>BUILD_PRO||!trialStart?0:Math.max(0,Math.ceil((trialStart+TRIAL_DAYS*864e5-Date.now())/864e5));
+const pro=()=>BUILD_PRO||trialLeft()>0;
+const SWATCHES=['#3a3eb4','#6c4bd8','#2f6fd6','#1f9bd1','#2b8a81','#3f9a3a','#9bb21e','#e0b31b','#cf7a26','#d4532b','#c8322b','#c23a7a','#7a5c4a','#5b627d'];
+const TYPES={hsc:'Super creuses',hc:'Creuses',hp:'Pleines'};
+const COLORS={bleu:'Bleu',blanc:'Blanc',rouge:'Rouge'};
+const ALLDAY=['01/01','31/12'];
+const OFFERS={
+  'zen-estival':{label:'EDF Zen Estival',note:'Horaires et prix TTC 6 kVA vérifiés au 1er novembre 2026.',tempo:false,seasons:[
+    {name:'Hiver',from:'01/11',to:'31/03',hsc:[['22:00','07:00']],hc:[['11:00','18:00']],hp:[['07:00','11:00'],['18:00','22:00']],price:{hsc:0.1992,hc:0.2131,hp:0.2722}},
+    {name:'Été',from:'01/04',to:'31/10',hsc:[['11:00','18:00']],hc:[['22:00','07:00']],hp:[['07:00','11:00'],['18:00','22:00']],price:{hsc:0.0991,hc:0.1405,hp:0.1588}}]},
+  'hphc':{label:'Heures creuses classiques',note:'Exemple 22h–6h : recopiez les horaires de votre facture et vos prix.',tempo:false,seasons:[
+    {name:'Toute l\'année',from:ALLDAY[0],to:ALLDAY[1],hsc:[],hc:[['22:00','06:00']],hp:[['06:00','22:00']],price:{hsc:null,hc:null,hp:null}}]},
+  'tempo':{label:'EDF Tempo',note:'Heures creuses 22h–6h. Renseignez les prix de chaque couleur.',tempo:true,pro:true,seasons:[
+    {name:'Toute l\'année',from:ALLDAY[0],to:ALLDAY[1],hsc:[],hc:[['22:00','06:00']],hp:[['06:00','22:00']],price:{hsc:null,hc:null,hp:null}}]},
+  'custom':{label:'Personnalisée',note:'Vos propres plages et prix.',tempo:false,seasons:null}
+};
+const DEF_SETTINGS={theme:'auto',target:'auto',offerId:'zen-estival',margin:10,seasons:JSON.parse(JSON.stringify(OFFERS['zen-estival'].seasons)),tempo:false,
+  tempoPrices:{bleu:{hc:null,hp:null},blanc:{hc:null,hp:null},rouge:{hc:null,hp:null}}};
+const mkC=(n,d,k,f)=>({id:'c'+Math.random().toString(36).slice(2,9),name:n,dur:d,kwh:k,fav:!!f});
+const DEF_APPL=[
+  {id:'a1',name:'Lave-linge',power:0.3,mode:'start',minDelay:2,maxDelay:24,step:60,noDelay:false,cycles:[mkC('Coton 40°',165,null,true),mkC('Synthétique 30°',105,null),mkC('Rapide 30 min',30,null)]},
+  {id:'a2',name:'Lave-vaisselle',power:0.26,mode:'start',minDelay:1,maxDelay:24,step:60,noDelay:false,cycles:[mkC('Éco 50°',210,null,true),mkC('Intensif 70°',140,1.4)]},
+  {id:'a3',name:'Sèche-linge',power:1.0,mode:'start',minDelay:1,maxDelay:24,step:60,noDelay:true,cycles:[mkC('Coton prêt à ranger',150,null,true)]}];
+const clone=o=>JSON.parse(JSON.stringify(o));
+
+function load(k,d){try{const v=localStorage.getItem(K+k);return v?JSON.parse(v):clone(d)}catch(e){return clone(d)}}
+function save(){try{localStorage.setItem(K+'settings',JSON.stringify(S));localStorage.setItem(K+'appl',JSON.stringify(A));localStorage.setItem(K+'hist',JSON.stringify(H))}catch(e){}}
+let S=load('settings',DEF_SETTINGS), A=load('appl',DEF_APPL), H=load('hist',[]);
+/* Consommation : valeur saisie pour le cycle, sinon estimation = puissance moyenne de l'appareil x durée */
+function defPower(n){n=(n||'').toLowerCase();return /s[eè]che/.test(n)?1.0:/vaisselle/.test(n)?0.26:/linge/.test(n)?0.3:0.5}
+const OLD_DEFK={'Coton 40°':0.8,'Synthétique 30°':0.5,'Rapide 30 min':0.2,'Éco 50°':0.9,'Coton prêt à ranger':2.5};
+function migrateAppl(){A.forEach(a=>{if(a.power==null)a.power=defPower(a.name);a.cycles.forEach(c=>{if(c.kwh!=null&&OLD_DEFK[c.name]===c.kwh&&!c.kwhSet)c.kwh=null})})}
+migrateAppl();
+const autoKwh=(a,c)=>Math.round((+a.power||0)*c.dur/60*100)/100;
+const cycKwh=(a,c)=>c.kwh!=null&&c.kwh>0?c.kwh:autoKwh(a,c);
+const fK=v=>(+v).toLocaleString('fr-FR',{maximumFractionDigits:2});
+/* Étiquette énergie : seul le programme officiel testé (éco 40-60, éco, coton) a une valeur officielle ; le reste est estimé */
+const isLabel=c=>c&&c.source==='label';
+const kindOf=a=>{const n=(a.name||'').toLowerCase();return /s[eè]che/.test(n)?'dryer':/vaisselle/.test(n)?'dish':/linge/.test(n)?'wash':'other'};
+const labelProg=a=>({wash:'éco 40-60',dish:'éco',dryer:'coton',other:'éco'})[kindOf(a)];
+const labelCycleName=a=>({wash:'Éco 40-60',dish:'Éco',dryer:'Coton',other:'Programme éco'})[kindOf(a)]+' (étiquette)';
+const parseReg=v=>{const m=/(?:qr\/|product\/[a-z0-9]+\/|^)(\d{5,8})\b/i.exec((v||'').trim());return m?m[1]:null};
+const eprelUrl=r=>'https://eprel.ec.europa.eu/qr/'+r;
+const parseDur=v=>{v=(v||'').trim().toLowerCase();let m=/^(\d{1,2})\s*[:h]\s*(\d{1,2})?\s*(min)?$/.exec(v);if(m)return (+m[1])*60+(+(m[2]||0));
+  m=/^(\d+)$/.exec(v);if(m)return +m[1]<=12?+m[1]*60:+m[1];return null};
+async function scanQR(ai,file){const a=A[ai];a.label=a.label||{};
+  try{if(!('BarcodeDetector' in window))throw new Error('nosupport');
+    const bd=new BarcodeDetector({formats:['qr_code']});const r=await bd.detect(await createImageBitmap(file));
+    const reg=r.length?parseReg(r[0].rawValue):null;if(!reg)throw new Error('nocode');
+    a.label.reg=reg;save();ui.qrMsg={ai,t:'QR code lu : fiche officielle n° '+reg+'. Ouvrez-la et recopiez les deux valeurs ci-dessous.'}}
+  catch(e){ui.qrMsg={ai,t:e.message==='nosupport'?"Ce téléphone ne lit pas les QR codes dans l'appli. Scannez l'étiquette avec l'appareil photo, puis collez le lien obtenu dans le champ.":"Aucun QR code d'étiquette énergie trouvé sur la photo. Reprenez-la plus près, bien à plat."}}
+  render()}
+if(!S.colors)S.colors={hsc:null,hc:null,hp:null};
+if(!S.theme)S.theme='auto';
+if(!S.target)S.target='auto';
+function applyTheme(){const r=document.documentElement;if(S.theme==='light'||S.theme==='dark')r.setAttribute('data-theme',S.theme);else r.removeAttribute('data-theme');
+  const m=document.querySelector('meta[name=theme-color]');if(m)m.setAttribute('content',getComputedStyle(r).getPropertyValue('--bg').trim()||'#121410')}
+const visAppl=()=>pro()?A:A.slice(0,1);
+const visCycles=a=>pro()?a.cycles:a.cycles.slice(0,FREE_CYCLES);
+function applyColors(){const r=document.documentElement;
+  for(const ty of ['hsc','hc','hp']){const c=pro()&&S.colors[ty];if(c)r.style.setProperty('--'+ty,c);else r.style.removeProperty('--'+ty)}}
+const ui={tab:'calc',timeMode:'phone',mDate:'',mTime:'',applId:A[0]&&A[0].id,cycleId:null,pick:null,endPref:'latest',endAt:'07:00',resetArmed:false,logged:null,tempo:{}};
+
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const hm=s=>{const m=/^(\d{1,2}):(\d{2})$/.exec(s||'');return m?(+m[1])*60+(+m[2]):null};
+const mdv=s=>{const m=/^(\d{1,2})\/(\d{1,2})$/.exec((s||'').trim());return m?(+m[2])*100+(+m[1]):null};
+const dayStart=t=>{const d=new Date(t);d.setHours(0,0,0,0);return d};
+const addDays=(d,n)=>new Date(d.getFullYear(),d.getMonth(),d.getDate()+n);
+const at=(day,min)=>new Date(day.getFullYear(),day.getMonth(),day.getDate(),0,min).getTime();
+const fT=t=>{const d=new Date(t);return pad(d.getHours())+':'+pad(d.getMinutes())};
+const fDur=m=>{const h=Math.floor(m/60),r=m%60;return h?(r?`${h}h${pad(r)}`:`${h}h`):`${r} min`};
+const eur=v=>v==null||isNaN(v)?'–':v.toLocaleString('fr-FR',{style:'currency',currency:'EUR',minimumFractionDigits:2,maximumFractionDigits:2});
+const ymd=t=>{const d=new Date(t);return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`};
+const num=v=>{if(v===''||v==null)return null;const n=parseFloat(String(v).replace(',','.'));return isNaN(n)?null:n};
+function dayLbl(t,ref){const n=Math.round((dayStart(t)-dayStart(ref))/864e5);
+  return n===0?"aujourd'hui":n===1?'demain':n===2?'après-demain':new Date(t).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})}
+
+function seasonFor(day){const v=(day.getMonth()+1)*100+day.getDate();
+  for(const s of S.seasons){const a=mdv(s.from),b=mdv(s.to);if(a==null||b==null)continue;
+    if(a<=b?(v>=a&&v<=b):(v>=a||v<=b))return s}return null}
+const TARGETS=[['auto','Auto'],['hsc','Super creuses'],['hc','Creuses'],['hp','Pleines']];
+const targetType=s=>{if(!s)return null;const t=S.target||'auto';
+  if(t==='auto')return s.hsc&&s.hsc.length?'hsc':'hc';
+  return s[t]&&s[t].length?t:null};
+const targetLbl=()=>{const t=S.target||'auto';return t==='auto'?'la plage la moins chère':'les heures '+TYPES[t].toLowerCase()};
+const targetSeg=()=>`<div class="seg">${TARGETS.map(([k,l])=>`<button data-target="${k}" aria-pressed="${(S.target||'auto')===k}">${l}</button>`).join('')}</div>`;
+function spans(day,s,type){return (s[type]||[]).map(([a,b])=>{const A_=hm(a),B=hm(b);if(A_==null||B==null||A_===B)return null;
+  return {s:at(day,A_),e:B<A_?at(day,B+1440):at(day,B),type}}).filter(Boolean)}
+function windows(now,days=4){const out=[];const d0=dayStart(now);
+  for(let o=-1;o<=days;o++){const day=addDays(d0,o),s=seasonFor(day);if(s){const ty=targetType(s);if(ty)out.push(...spans(day,s,ty))}}
+  out.sort((a,b)=>a.s-b.s);const m=[];for(const w of out){const l=m[m.length-1];if(l&&w.s<=l.e)l.e=Math.max(l.e,w.e);else m.push({...w})}return m}
+function classify(t){const d0=dayStart(t);
+  for(const o of [0,-1]){const day=addDays(d0,o),s=seasonFor(day);if(!s)continue;
+    for(const ty of ['hsc','hc','hp'])for(const sp of spans(day,s,ty))if(t>=sp.s&&t<sp.e)return ty}return null}
+
+function candidates(now,cyc,ap,ws){const res=[],mg=(+S.margin||0)*6e4,dur=cyc*6e4;
+  const fits=(st,en)=>ws.find(w=>st>=w.s+mg&&en<=w.e-mg);
+  if(ap.noDelay){const t0=Math.ceil(now/(5*6e4))*5*6e4;
+    for(let st=t0;st<=now+24*36e5;st+=5*6e4){const en=st+dur,w=fits(st,en);if(w)res.push({k:Math.round((st-now)/6e4),st,en,w,launch:true})}
+    return res}
+  const step=Math.max(5,+ap.step||60);
+  for(let k=(+ap.minDelay||0)*60;k<=(+ap.maxDelay||24)*60;k+=step){let st,en;
+    if(ap.mode==='start'){st=now+k*6e4;en=st+dur}else{en=now+k*6e4;st=en-dur;if(st<now)continue}
+    const w=fits(st,en);if(w)res.push({k,st,en,w})}
+  return res}
+function choose(res,now){if(!res.length)return null;
+  if(ui.pick!=null){const p=res.find(r=>r.k===ui.pick);if(p)return p}
+  if(pro()&&ui.endPref==='earliest')return res[0];
+  if(pro()&&ui.endPref==='target'){const m=hm(ui.endAt);if(m!=null){let tg=at(dayStart(now),m);if(tg<=now)tg+=864e5;
+    const before=res.filter(r=>r.en<=tg);if(before.length)return before[before.length-1];
+    return res.reduce((a,b)=>Math.abs(b.en-tg)<Math.abs(a.en-tg)?b:a)}}
+  // au plus tard, mais dans la prochaine plage atteignable (pas la nuit suivante)
+  const first=res[0].w.s,pool=res.filter(r=>r.w.s===first);
+  // appareil sans différé : on le lance soi-même, donc au plus tôt dans la plage
+  if(pool[0].launch)return pool[0];
+  return pool[pool.length-1]}
+
+/* tarifs et Tempo */
+const tempoDay=t=>ymd(t-6*36e5);
+function tempoColor(t){return ui.tempo[tempoDay(t)]||null}
+function price(type,t){
+  if(S.tempo){const c=tempoColor(t)||'bleu',p=S.tempoPrices[c];return p?(type==='hp'?p.hp:p.hc):null}
+  const s=seasonFor(dayStart(t));return s&&s.price?s.price[type]:null}
+function economics(cycle,sel,ap){const kwh=cycKwh(ap||curAppl(),cycle);if(!kwh)return null;const ty=sel.w.type;
+  const pT=price(ty,sel.st),pH=price('hp',sel.st);if(pT==null||pH==null)return null;
+  return {kwh,cost:kwh*pT,peak:kwh*pH,saving:kwh*(pH-pT)}}
+async function fetchTempo(){if(!pro()||!S.tempo)return;
+  for(const which of ['today','tomorrow']){try{
+    const r=await fetch('https://www.calendrier-tempo.fr/api/'+which,{cache:'no-store'});const j=await r.json();
+    const c=String(j.couleur||'').toLowerCase();if(COLORS[c]&&j.date)ui.tempo[String(j.date).slice(0,10)]=c;
+  }catch(e){}}
+  try{const man=JSON.parse(localStorage.getItem(K+'tempoManual')||'{}');for(const d in man)if(!ui.tempo[d])ui.tempo[d]=man[d]}catch(e){}
+  if(ui.tab==='calc')render()}
+function setTempoManual(d,c){ui.tempo[d]=c;try{const man=JSON.parse(localStorage.getItem(K+'tempoManual')||'{}');man[d]=c;localStorage.setItem(K+'tempoManual',JSON.stringify(man))}catch(e){}}
+
+function gcalLink(title,t){const f=x=>new Date(x).toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
+  return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(title)+'&dates='+f(t)+'/'+f(t+15*6e4)+'&details='+encodeURIComponent('Rappel Différé Malin')}
+
+function getNow(){if(ui.timeMode==='phone')return Date.now();
+  const d=/^(\d{4})-(\d{2})-(\d{2})$/.exec(ui.mDate),t=hm(ui.mTime);
+  if(!d||t==null)return Date.now();return new Date(+d[1],+d[2]-1,+d[3],0,t).getTime()}
+const curAppl=()=>visAppl().find(a=>a.id===ui.applId)||visAppl()[0];
+const curCycle=ap=>{const cs=visCycles(ap);return cs.find(c=>c.id===ui.cycleId)||cs.find(c=>c.fav)||cs[0]};
+
+const app=document.getElementById('app');
+const proTag=()=>`<span class="badge-pro">Pro</span>`;
+
+function tempoBanner(now){if(!pro()||!S.tempo)return '';
+  const td=tempoDay(now),tm=ymd(addDays(new Date(td+'T12:00'),1).getTime()),cT=ui.tempo[td],cM=ui.tempo[tm];
+  const pill=c=>`<span class="tpill tp-${c||'inconnu'}">${c?COLORS[c]:'inconnu'}</span>`;
+  let h=`<div class="panel ${cM==='rouge'?'banner-rouge':''}"><div class="tempo"><span>Aujourd'hui ${pill(cT)}</span><span>Demain ${pill(cM)}</span></div>`;
+  if(cM==='rouge')h+=`<p class="alert">Demain est un jour rouge : les heures pleines coûtent très cher. Lancez vos machines cette nuit.</p>`;
+  if(!cM)h+=`<div class="row"><span class="note">Couleur de demain non publiée (annonce vers 11h). La fixer :</span>${Object.keys(COLORS).map(c=>`<button class="btn small" data-tman="${tm}|${c}">${COLORS[c]}</button>`).join('')}</div>`;
+  return h+`</div>`}
+
+function renderCalc(){
+  const now=getNow(),ap=curAppl(),nowType=classify(now);
+  let h=`<div class="row between"><h1>Différé Malin${pro()?' '+proTag():''}</h1>
+    <span class="status"><span class="dot t-${nowType||'none'}"></span>${nowType?'Heures '+TYPES[nowType].toLowerCase():'Plage non définie'}</span></div>`;
+  h+=trialBanner()+tempoBanner(now);
+  h+=`<div class="panel"><div class="row between"><span class="eyebrow">Heure de référence</span>
+     <div class="seg"><button data-tm="phone" aria-pressed="${ui.timeMode==='phone'}">Locale</button><button data-tm="manual" aria-pressed="${ui.timeMode==='manual'}">Saisir</button></div></div>`;
+  h+=ui.timeMode==='phone'?`<div style="font-family:var(--mono);font-size:1.6rem">${fT(now)} <span class="muted" style="font-size:.9rem;font-family:var(--body)">${new Date(now).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})}</span></div>`
+    :`<div class="row"><input type="date" id="mDate" value="${esc(ui.mDate)}" aria-label="Date"><input type="time" id="mTime" value="${esc(ui.mTime)}" aria-label="Heure"></div>`;
+  h+=`</div>`;
+  if(!ap){app.innerHTML=h+`<p class="alert">Ajoutez un appareil dans l'onglet Appareils.</p>`;return}
+  const cyc=curCycle(ap);
+  h+=`<div class="panel">`;
+  if(visAppl().length>1)h+=`<span class="eyebrow">Appareil</span><div class="chips">${visAppl().map(a=>`<button class="chip" data-appl="${esc(a.id)}" aria-pressed="${a.id===ap.id}">${esc(a.name)}</button>`).join('')}</div>`;
+  if(!cyc){h+=`<p class="alert">Aucun cycle pour cet appareil.</p></div>`;app.innerHTML=h;return}
+  const list=[...visCycles(ap)].sort((a,b)=>b.fav-a.fav);
+  h+=`<span class="eyebrow">Lancer en heures</span>${targetSeg()}`;
+  h+=`<span class="eyebrow">Cycle</span><div class="chips">${list.map(c=>`<button class="chip" data-cyc="${esc(c.id)}" aria-pressed="${c.id===cyc.id}">${c.fav?'<span class="star">★</span>':''}${esc(c.name)} · ${fDur(c.dur)}</button>`).join('')}</div>`;
+  if(pro())h+=`<span class="eyebrow">Fin du cycle</span><div class="row"><div class="seg">
+      <button data-ep="latest" aria-pressed="${ui.endPref==='latest'}">Au plus tard</button><button data-ep="earliest" aria-pressed="${ui.endPref==='earliest'}">Au plus tôt</button><button data-ep="target" aria-pressed="${ui.endPref==='target'}">Vers…</button></div>
+      ${ui.endPref==='target'?`<input type="time" id="endAt" value="${esc(ui.endAt)}" aria-label="Heure de fin souhaitée">`:''}</div>`;
+  h+=`</div>`;
+  const ws=windows(now),res=candidates(now,cyc.dur,ap,ws),sel=choose(res,now);
+  if(sel){const tLbl=TYPES[sel.w.type].toLowerCase();
+    if(sel.launch){
+      h+=`<div class="lcd"><span class="lbl">Pas de différé · lancer à la main</span><div class="big">${fT(sel.st).replace(':','<small>h</small>')}</div>
+        <div class="times"><span>FIN <b>${fT(sel.en)}</b></span><span>${esc(dayLbl(sel.st,now))}</span></div></div>`;
+    }else{
+      h+=`<div class="lcd"><span class="lbl">À régler sur la machine · ${ap.mode==='start'?'départ différé':'fin différée'}</span>
+        <div class="big">${Math.floor(sel.k/60)}<small>h${sel.k%60?pad(sel.k%60):''}</small></div>
+        <div class="times"><span>DÉPART <b>${fT(sel.st)}</b></span><span>FIN <b>${fT(sel.en)}</b></span><span>${esc(dayLbl(sel.st,now))}</span></div></div>`;
+    }
+    h+=`<p class="note">Plage ${tLbl} ${fT(sel.w.s)} → ${fT(sel.w.e)}, marge de ${S.margin} min de chaque côté.</p>`;
+    {const ec=economics(cyc,sel,ap);
+      h+=`<div class="panel">`;
+      if(pro()){
+        const est=!isLabel(cyc),ap_=est?'≈ ':'',srcT=est?'<b>estimation</b>':'<b>valeur officielle de l\'étiquette</b>';
+        if(ec&&sel.w.type==='hp')h+=`<p class="note">Cycle en heures pleines : coût ${ap_}${eur(ec.cost)}, pas d'économie · ${fK(ec.kwh)} kWh · ${srcT}</p>`;
+        else if(ec)h+=`<div class="saving"><strong>${ap_}${eur(ec.saving)}</strong><span>d'économie${est?' estimée':''} par rapport aux heures pleines</span></div><p class="note">Coût du cycle ${ap_}${eur(ec.cost)} au lieu de ${ap_}${eur(ec.peak)} · ${fK(ec.kwh)} kWh · ${srcT}${S.tempo?' · jour '+(tempoColor(sel.st)?COLORS[tempoColor(sel.st)].toLowerCase():'bleu (supposé)'):''}</p>`;
+        else h+=`<p class="note">Renseignez vos prix dans Réglages et la consommation du cycle pour voir l'économie.</p>`;
+      }else h+=teaser();
+      h+=`<div class="row">${ui.logged===sel.st+cyc.id?`<span class="status" style="color:var(--ok);font-weight:700">✓ Cycle enregistré</span>`:`<button class="btn primary" data-log="${sel.k}">J'ai lancé ce cycle</button>`}
+        ${pro()&&sel.launch?`<a class="btn" target="_blank" rel="noopener" href="${gcalLink('Lancer '+ap.name+' – '+cyc.name,sel.st)}">Rappel dans l'agenda</a>`:''}</div></div>`}
+    if(res.length>1){const L=[...res].reverse();const show=sel.launch?L.filter((r,i)=>i%6===0||r===sel):L;
+      h+=`<div class="panel"><span class="eyebrow">Autres possibilités (du plus tardif au plus tôt)</span><div class="chips">${show.map(r=>`<button class="chip" data-pick="${r.k}" aria-pressed="${r===sel}">${r.launch?fT(r.st):fDur(r.k)} <span class="muted" style="font-size:.8em">fin ${fT(r.en)}</span></button>`).join('')}</div></div>`}
+  }else{
+    let msg='',found=null;const longest=Math.max(0,...ws.map(w=>(w.e-w.s)/6e4));
+    if(!ws.length)msg=`Votre offre n'a pas d'heures ${TYPES[S.target].toLowerCase()} sur cette période. Choisissez une autre plage.`;
+    else if(longest<cyc.dur+2*S.margin)msg=`Ce cycle (${fDur(cyc.dur)}) est plus long que ${targetLbl()} (${fDur(Math.round(longest))}).`;
+    else{const ws2=windows(now,5);for(let t=now+5*6e4;t<now+48*36e5;t+=5*6e4){if(candidates(t,cyc.dur,ap,ws2).length){found=t;break}}
+      msg=`Aucun différé entre ${ap.minDelay} h et ${ap.maxDelay} h ne fait tenir ce cycle dans ${targetLbl()}.`+(found?` Possible à partir de ${fT(found)} (${esc(dayLbl(found,now))}).`:'')}
+    h+=`<div class="lcd off"><span class="lbl">À régler sur la machine</span><div class="big">--<small>h</small></div></div><p class="alert">${msg}</p>`;
+    if(pro()&&found)h+=`<a class="btn" style="align-self:flex-start" target="_blank" rel="noopener" href="${gcalLink('Programmer '+ap.name+' – '+cyc.name,found)}">Rappel à ${fT(found)} dans l'agenda</a>`;
+  }
+  const span=27*36e5,end=now+span,segs=[];let cur=null;
+  for(let t=now;t<end;t+=5*6e4){const ty=classify(t)||'none';if(cur&&cur.ty===ty)cur.n++;else{cur={ty,n:1};segs.push(cur)}}
+  const tot=segs.reduce((a,s)=>a+s.n,0),pct=t=>Math.min(100,Math.max(0,(t-now)/span*100));
+  let ticks='';const first=new Date(now);first.setMinutes(0,0,0);
+  for(let t=first.getTime()+36e5;t<end;t+=36e5){const hh=new Date(t).getHours();if(hh%6===0){const p=pct(t);if(p>4&&p<96)ticks+=`<span style="left:${p}%">${pad(hh)}h</span>`}}
+  h+=`<div class="panel"><span class="eyebrow">Les prochaines 27 heures</span><div class="tl">
+    <div class="tl-bar">${segs.map(s=>`<div class="t-${s.ty}" style="width:${s.n/tot*100}%"></div>`).join('')}</div>
+    <div class="tl-mark" style="left:0"><span style="left:0;transform:none">${fT(now)}</span></div>
+    ${sel?`<div class="tl-mark cyc" style="left:${pct(sel.st)}%;width:${pct(sel.en)-pct(sel.st)}%"><span>cycle</span></div>`:''}
+    <div class="tl-ticks">${ticks}</div></div>
+    <div class="legend"><span><i class="dot t-hsc"></i>Super creuses</span><span><i class="dot t-hc"></i>Creuses</span><span><i class="dot t-hp"></i>Pleines</span></div></div>`;
+  if(!pro())h+=proCard();
+  app.innerHTML=h;
+}
+
+function trialBanner(){if(BUILD_PRO)return '';const n=trialLeft();
+  if(n>0)return `<div class="panel pro-card"><div class="row between"><span><b>Essai Pro</b> · ${n} jour${n>1?'s':''} restant${n>1?'s':''}</span>${proTag()}</div>
+    <p class="note">Toutes les fonctions Pro sont ouvertes pendant l'essai. Ensuite, l'appli garde le calcul, un appareil et ${FREE_CYCLES} cycles.</p></div>`;
+  return ''}
+function teaser(){const n=H.length;
+  return `<div class="saving"><strong style="color:var(--fg)">${n}</strong><span>cycle${n>1?'s':''} lancé${n>1?'s':''} aux heures les moins chères</span></div>
+    <div class="row"><span>Vos économies : <b>🔒 ••,•• €</b></span><a class="btn small" href="${PRO_STORE_URL}" target="_blank" rel="noopener">Voir avec Pro</a></div>`}
+function proCard(){return `<div class="panel pro-card"><div class="row"><h2>Différé Malin Pro</h2>${proTag()}</div><ul>
+  <li>Vos économies à chaque cycle, du mois et de l'année</li><li>Lave-vaisselle, sèche-linge et autres appareils</li>
+  <li>Cycles illimités</li><li>Offre Tempo avec alerte la veille des jours rouges</li>
+  <li>Fin du cycle à l'heure choisie (réveil, retour du travail)</li><li>Rappel dans l'agenda pour les appareils sans différé</li>
+  <li>Vos propres couleurs pour chaque plage</li></ul>
+  <div class="row"><a class="btn primary" href="${PRO_STORE_URL}" target="_blank" rel="noopener">Passer à Pro · ${PRICE_LABEL}</a><span class="note">Achat unique, sans abonnement.</span></div>
+  <p class="note">Vos cycles se transfèrent dans Pro : Réglages, « Transférer mes réglages ».</p></div>`}
+
+function renderAppl(){
+  let h=`<h1>${pro()?'Appareils':'Cycles'}</h1><p class="note">L'étoile marque le cycle proposé par défaut. Les durées et consommations préremplies sont des exemples : remplacez-les par celles de vos appareils.</p>`;
+  visAppl().forEach((a,ai)=>{
+    h+=`<div class="panel">`;
+    if(pro())h+=`<div class="row between"><input id="an-${ai}" data-aname="${ai}" value="${esc(a.name)}" style="font-weight:700;flex:1" aria-label="Nom de l'appareil">${A.length>1?`<button class="icon-btn" data-adel="${ai}" aria-label="Supprimer l'appareil">✕</button>`:''}</div>`;
+    else h+=`<h2>${esc(a.name)}</h2>`;
+    if(pro())h+=`<label class="field">Puissance moyenne pendant un cycle (kW)<input type="text" inputmode="decimal" style="width:6em" id="ap-${ai}" data-apow="${ai}" value="${fK(a.power)}"></label>`;
+    if(pro()){const L=a.label||{};h+=`<div class="group"><h3>Étiquette énergie</h3>
+      <div class="row"><label class="btn small" for="qr-${ai}">Scanner le QR code</label><input type="file" accept="image/*" capture="environment" id="qr-${ai}" data-qr="${ai}" hidden>
+      <input id="lr-${ai}" data-lreg="${ai}" value="${esc(L.reg||'')}" placeholder="N° ou lien du QR code" aria-label="Numéro de la fiche officielle" style="flex:1;min-width:10em"></div>
+      ${ui.qrMsg&&ui.qrMsg.ai===ai?`<p class="note">${esc(ui.qrMsg.t)}</p>`:''}
+      ${L.reg?`<a class="btn small" style="align-self:flex-start" href="${eprelUrl(L.reg)}" target="_blank" rel="noopener">Ouvrir la fiche officielle n° ${esc(L.reg)}</a>`:''}
+      <div class="grid2"><label class="field">Consommation (kWh pour 100 cycles)<input id="lk-${ai}" inputmode="decimal" value="${L.k100??''}" placeholder="ex. 49"></label>
+      <label class="field">Durée du programme (h:mm)<input id="ld-${ai}" value="${L.dur?Math.floor(L.dur/60)+':'+pad(L.dur%60):''}" placeholder="ex. 3:28"></label></div>
+      <button class="btn small" style="align-self:flex-start" data-labsave="${ai}">Enregistrer le programme officiel</button>
+      <p class="note">Sur la fiche : consommation pour 100 cycles et durée du programme ${labelProg(a)} à pleine charge. Ce programme sera calculé avec la valeur officielle, les autres restent des estimations.</p></div>`}
+    h+=`<label class="check"><input type="checkbox" id="nd-${ai}" data-nodelay="${ai}" ${a.noDelay?'checked':''}${pro()?'':' disabled'}> Pas de départ différé sur cet appareil${pro()?'':' '+proTag()}</label>`;
+    if(!a.noDelay){
+      h+=`<div class="field">Le chiffre affiché sur la machine correspond à
+        <div class="seg" style="align-self:flex-start"><button data-amode="${ai}|start" aria-pressed="${a.mode==='start'}">Départ différé</button><button data-amode="${ai}|end" aria-pressed="${a.mode==='end'}">Fin différée</button></div></div>
+        <div class="grid2"><label class="field">Différé minimum (h)<input type="number" id="amin-${ai}" data-amin="${ai}" min="0" max="24" value="${a.minDelay}"></label>
+        <label class="field">Différé maximum (h)<input type="number" id="amax-${ai}" data-amax="${ai}" min="1" max="48" value="${a.maxDelay}"></label>
+        <label class="field">Pas de réglage<select id="astep-${ai}" data-astep="${ai}"><option value="60"${a.step==60?' selected':''}>1 heure</option><option value="30"${a.step==30?' selected':''}>30 min</option></select></label></div>`}
+    const hidden=a.cycles.length-visCycles(a).length,full=!pro()&&a.cycles.length>=FREE_CYCLES;
+    h+=`<span class="eyebrow">Cycles${pro()?'':` · ${Math.min(a.cycles.length,FREE_CYCLES)} sur ${FREE_CYCLES}`}</span><div class="list">`+visCycles(a).map((c,ci)=>`<div class="cycle">
+       <button class="star-btn" data-fav="${ai}|${ci}" aria-pressed="${!!c.fav}" aria-label="Cycle favori">★</button>
+       <input id="cn-${ai}-${ci}" data-cname="${ai}|${ci}" value="${esc(c.name)}" aria-label="Nom du cycle">
+       <button class="icon-btn" data-cdel="${ai}|${ci}" aria-label="Supprimer le cycle">✕</button>
+       <div class="dur">Durée <input type="number" min="0" max="12" id="ch-${ai}-${ci}" data-ch="${ai}|${ci}" value="${Math.floor(c.dur/60)}" aria-label="Heures"> h
+         <input type="number" min="0" max="59" step="5" id="cm-${ai}-${ci}" data-cm="${ai}|${ci}" value="${c.dur%60}" aria-label="Minutes"> min
+         ${isLabel(c)?`<span style="margin-left:8px" class="badge-pro">Étiquette officielle · ${fK(c.kwh)} kWh</span>`:pro()?`<span style="margin-left:8px">≈ <input type="text" inputmode="decimal" style="width:4.5em" id="ck-${ai}-${ci}" data-ckwh="${ai}|${ci}" value="${c.kwh??''}" placeholder="${fK(autoKwh(a,c))}" aria-label="Consommation en kWh"> kWh <span class="note">estimation</span></span>`:''}</div></div>`).join('')+`</div>
+      ${hidden>0?`<p class="note">${hidden} autre${hidden>1?'s':''} cycle${hidden>1?'s':''} enregistré${hidden>1?'s':''}, disponible${hidden>1?'s':''} avec Pro.</p>`:''}
+      ${full?`<div class="row"><button class="btn small" disabled>+ cycle</button><span class="note">Plus de ${FREE_CYCLES} cycles avec ${proTag()}</span></div>`:`<button class="btn small" style="align-self:flex-start" data-cadd="${ai}">+ cycle</button>`}</div>`;
+  });
+  if(!pro()&&A.length>1)h+=`<p class="note">${A.length-1} autre${A.length>2?'s':''} appareil${A.length>2?'s':''} enregistré${A.length>2?'s':''} pendant l'essai : ${A.slice(1).map(a=>esc(a.name)).join(', ')}.</p>`;
+  h+=pro()?`<button class="btn primary" data-aadd>Ajouter un appareil</button><p class="note">kWh « auto » : puissance moyenne de l'appareil × durée du cycle, recalculé quand vous changez la durée. Pour plus de précision, saisissez la consommation réelle (notice, étiquette énergie, ou prise wattmètre) ; videz le champ pour revenir à l'estimation.</p>`:proCard();
+  app.innerHTML=h;
+}
+
+function renderHist(){
+  const now=Date.now(),d=new Date(now),m0=new Date(d.getFullYear(),d.getMonth(),1).getTime(),y0=new Date(d.getFullYear(),0,1).getTime();
+  const sum=(from)=>H.filter(x=>x.t>=from).reduce((a,x)=>a+(x.saving||0),0);
+  const lock=`<b>🔒 ••,••</b>`,P_=pro();
+  let h=`<h1>Économies</h1>${trialBanner()}<div class="panel"><div class="stats">
+    <div class="stat"><span class="eyebrow">Ce mois</span>${P_?`<b>${eur(sum(m0))}</b>`:lock}</div>
+    <div class="stat"><span class="eyebrow">Cette année</span>${P_?`<b>${eur(sum(y0))}</b>`:lock}</div>
+    <div class="stat"><span class="eyebrow">Cycles</span><b>${H.length}</b></div></div>
+    <p class="note">${P_?'Comparé au même cycle lancé en heures pleines. Les montants précédés de ≈ sont des estimations ; seuls les programmes enregistrés depuis l\'étiquette énergie utilisent la consommation officielle.':'Vos cycles sont bien enregistrés. Les montants économisés s\'affichent avec la version Pro.'}</p></div>`;
+  if(!P_){h+=proCard()+`<div class="panel"><span class="eyebrow">Derniers cycles</span><div class="hist">${[...H].sort((a,b)=>b.t-a.t).slice(0,30).map(x=>`
+    <div><div>${esc(x.appl)} · ${esc(x.cycle)}</div><div class="when">${new Date(x.t).toLocaleDateString('fr-FR',{day:'numeric',month:'short'})} ${fT(x.t)}</div></div>
+    <b class="muted">🔒</b><button class="icon-btn" data-hdel="${x.id}" aria-label="Supprimer">✕</button>`).join('')||'<p class="note">Aucun cycle enregistré pour l\'instant.</p>'}</div></div>`;app.innerHTML=h;return}
+  if(!H.length)h+=`<div class="panel"><p class="note">Aucun cycle enregistré. Après avoir programmé la machine, touchez « J'ai lancé ce cycle » dans l'onglet Calcul.</p></div>`;
+  else h+=`<div class="panel"><span class="eyebrow">Derniers cycles</span><div class="hist">${[...H].sort((a,b)=>b.t-a.t).slice(0,60).map(x=>`
+    <div><div>${esc(x.appl)} · ${esc(x.cycle)}</div><div class="when">${new Date(x.t).toLocaleDateString('fr-FR',{day:'numeric',month:'short'})} ${fT(x.t)}</div></div>
+    <b style="color:var(--ok)">${x.saving!=null?(x.est===false?'':'≈ ')+eur(x.saving):'–'}</b><button class="icon-btn" data-hdel="${x.id}" aria-label="Supprimer">✕</button>`).join('')}</div></div>`;
+  app.innerHTML=h;
+}
+
+function priceInput(id,attr,v,locked){return `<input type="text" inputmode="decimal" id="${id}" ${attr} value="${v??''}" placeholder="€/kWh" style="width:6em"${locked?' disabled':''}>`}
+function renderSettings(){
+  const off=OFFERS[S.offerId]||OFFERS.custom;
+  let h=`<h1>Réglages</h1><div class="panel"><h2>Affichage</h2><div class="seg" style="align-self:flex-start">${[['auto','Automatique'],['light','Fond blanc'],['dark','Fond noir']].map(([k,l])=>`<button data-theme-set="${k}" aria-pressed="${S.theme===k}">${l}</button>`).join('')}</div><p class="note">Automatique suit le réglage du téléphone.</p></div>
+  <div class="panel"><h2>Lancer les programmes en heures</h2>${targetSeg()}<p class="note">Auto vise les heures super creuses si votre offre en a, sinon les heures creuses. Ce choix se retrouve aussi sur l'écran Calcul.</p></div>
+  <div class="panel"><h2>Offre d'électricité</h2>
+    <select id="offer" aria-label="Offre">${Object.entries(OFFERS).map(([k,o])=>`<option value="${k}"${S.offerId===k?' selected':''}${o.pro&&!pro()?' disabled':''}>${o.label}${o.pro&&!pro()?' (Pro)':''}</option>`).join('')}</select>
+    <p class="note">${esc(off.note)} Changer d'offre remplace les plages ci-dessous.</p>
+    <label class="field">Marge de sécurité (min)<input type="number" id="margin" min="0" max="60" value="${S.margin}"></label>
+    <p class="note">Le compteur bascule parfois quelques minutes avant ou après l'horaire annoncé, et la durée d'un cycle varie selon la charge.</p></div>`;
+  if(S.tempo&&pro()){h+=`<div class="panel"><h2>Prix Tempo (€/kWh)</h2><div class="list">${Object.keys(COLORS).map(c=>`<div class="range"><span class="tpill tp-${c}" style="min-width:4.5em;text-align:center">${COLORS[c]}</span>
+    creuses ${priceInput('tp-'+c+'-hc',`data-tp="${c}|hc"`,S.tempoPrices[c].hc)} pleines ${priceInput('tp-'+c+'-hp',`data-tp="${c}|hp"`,S.tempoPrices[c].hp)}</div>`).join('')}</div>
+    <p class="note">La couleur du jour est récupérée automatiquement quand le réseau le permet.</p></div>`}
+  S.seasons.forEach((s,si)=>{
+    h+=`<div class="panel"><div class="row between"><input id="sn-${si}" data-sname="${si}" value="${esc(s.name)}" style="font-weight:700;flex:1" aria-label="Nom de la période">${S.seasons.length>1?`<button class="icon-btn" data-sdel="${si}" aria-label="Supprimer la période">✕</button>`:''}</div>
+      <div class="grid2"><label class="field">Du (jj/mm)<input id="sf-${si}" data-sfrom="${si}" value="${esc(s.from)}"></label>
+      <label class="field">Au (jj/mm)<input id="st-${si}" data-sto="${si}" value="${esc(s.to)}"></label></div>`;
+    for(const ty of ['hsc','hc','hp']){
+      h+=`<div class="group"><h3><span class="dot t-${ty}"></span>Heures ${TYPES[ty].toLowerCase()}${!S.tempo?`<span style="margin-left:auto" class="${pro()?'':'locked'}">${priceInput(`p-${si}-${ty}`,`data-price="${si}|${ty}"`,s.price&&s.price[ty],!pro())}</span>`:''}</h3>`;
+      (s[ty]||[]).forEach((r,ri)=>{h+=`<div class="range"><input type="time" id="r-${si}-${ty}-${ri}-0" data-r="${si}|${ty}|${ri}|0" value="${esc(r[0])}" aria-label="Début"> à <input type="time" id="r-${si}-${ty}-${ri}-1" data-r="${si}|${ty}|${ri}|1" value="${esc(r[1])}" aria-label="Fin"><button class="icon-btn" data-rdel="${si}|${ty}|${ri}" aria-label="Supprimer la plage">✕</button></div>`});
+      h+=`<button class="btn small" style="align-self:flex-start" data-radd="${si}|${ty}">+ plage</button></div>`;
+    }
+    h+=`</div>`;
+  });
+  h+=`<button class="btn" data-sadd>Ajouter une période</button>
+  <p class="note">L'appli vise les heures super creuses quand l'offre en a, sinon les heures creuses. ${pro()?'':'Les prix et les économies sont dans la version Pro.'} Les réglages restent sur ce téléphone.</p>`;
+  h+=renderColors()+renderTransfer();
+  h+=`<button class="btn danger" data-reset>${ui.resetArmed?'Confirmer : tout remettre par défaut':'Tout remettre par défaut'}</button>`;
+  app.innerHTML=h;
+}
+
+function renderColors(){
+  if(!pro())return `<div class="panel locked"><div class="row"><h2>Couleurs des plages</h2>${proTag()}</div><p class="note">Choisissez la couleur des heures super creuses, creuses et pleines.</p></div>`;
+  const cs=getComputedStyle(document.documentElement);
+  let h=`<div class="panel"><div class="row between"><h2>Couleurs des plages</h2><button class="btn small" data-colreset>Couleurs d'origine</button></div>`;
+  for(const ty of ['hsc','hc','hp']){const cur=(S.colors[ty]||cs.getPropertyValue('--'+ty).trim()).toLowerCase();
+    h+=`<div class="group"><h3><span class="dot t-${ty}"></span>Heures ${TYPES[ty].toLowerCase()}</h3>
+      <div class="swatches" role="group" aria-label="Couleur des heures ${TYPES[ty].toLowerCase()}">${SWATCHES.map(c=>`<button class="sw" data-col="${ty}|${c}" style="background:${c}" aria-pressed="${cur===c}" aria-label="${c}"></button>`).join('')}
+      <label class="sw sw-free" title="Autre couleur"><input type="color" id="colp-${ty}" data-colpick="${ty}" value="${/^#[0-9a-f]{6}$/.test(cur)?cur:'#3a3eb4'}" aria-label="Autre couleur">+</label></div></div>`}
+  return h+`<p class="note">Ces couleurs s'appliquent à la frise, aux pastilles et à la légende.</p></div>`}
+
+function renderTransfer(){
+  let h=`<div class="panel"><h2>Transférer mes réglages</h2><p class="note">${BUILD_PRO?'Collez ici le code copié depuis la version gratuite pour récupérer vos cycles, horaires et historique.':'Copiez ce code puis collez-le dans Différé Malin Pro (Réglages) pour retrouver vos cycles, horaires et historique.'}</p>`;
+  if(!BUILD_PRO)h+=`<div class="row"><button class="btn" data-export>Copier le code</button>${ui.exportMsg?`<span class="note">${esc(ui.exportMsg)}</span>`:''}</div>${ui.exportShow?`<textarea id="exportBox" readonly rows="3" style="width:100%;font:12px var(--mono);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px">${esc(exportCode())}</textarea>`:''}`;
+  else h+=`<textarea id="importBox" rows="3" placeholder="Collez le code ici" style="width:100%;font:12px var(--mono);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px"></textarea>
+    <div class="row"><button class="btn" data-import>Importer</button>${ui.importMsg?`<span class="note">${esc(ui.importMsg)}</span>`:''}</div>`;
+  return h+`</div>`}
+function exportCode(){const json=JSON.stringify({v:1,S,A,H});return 'DL1:'+btoa(unescape(encodeURIComponent(json)))}
+function importCode(code){const m=/DL1:([A-Za-z0-9+/=]+)/.exec((code||'').replace(/\s/g,''));if(!m)throw new Error('format');
+  const o=JSON.parse(decodeURIComponent(escape(atob(m[1]))));if(!o.S||!Array.isArray(o.A))throw new Error('format');
+  S=o.S;if(!S.colors)S.colors={hsc:null,hc:null,hp:null};if(!S.theme)S.theme='auto';if(!S.target)S.target='auto';applyTheme();
+if(!S.theme)S.theme='auto';
+if(!S.target)S.target='auto';
+function applyTheme(){const r=document.documentElement;if(S.theme==='light'||S.theme==='dark')r.setAttribute('data-theme',S.theme);else r.removeAttribute('data-theme');
+  const m=document.querySelector('meta[name=theme-color]');if(m)m.setAttribute('content',getComputedStyle(r).getPropertyValue('--bg').trim()||'#121410')}A=o.A;migrateAppl();H=Array.isArray(o.H)?o.H:[];ui.applId=A[0]&&A[0].id;save();applyColors()}
+
+const tabsEl=document.getElementById('tabs');
+function render(){
+  const TABS=[['calc','Calcul'],['appl',pro()?'Appareils':'Cycles'],['hist','Économies'],['settings','Réglages']];
+  tabsEl.innerHTML=TABS.map(([k,l])=>`<button data-tab="${k}" aria-current="${k===ui.tab?'page':'false'}">${l}</button>`).join('');
+  ({calc:renderCalc,appl:renderAppl,hist:renderHist,settings:renderSettings})[ui.tab]();
+}
+tabsEl.addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;ui.tab=b.dataset.tab;ui.resetArmed=false;render();window.scrollTo(0,0)});
+
+const P=s=>s.split('|');
+app.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;const d=t.dataset;
+  if(d.tm){ui.timeMode=d.tm;if(d.tm==='manual'&&!ui.mDate){const n=Date.now();ui.mDate=ymd(n);ui.mTime=fT(n)}render()}
+  else if(d.appl){ui.applId=d.appl;ui.cycleId=null;ui.pick=null;render()}
+  else if(d.cyc){ui.cycleId=d.cyc;ui.pick=null;render()}
+  else if(d.ep){ui.endPref=d.ep;ui.pick=null;render()}
+  else if(d.pick){ui.pick=+d.pick;render()}
+  else if(d.tman){const[dd,c]=P(d.tman);setTempoManual(dd,c);render()}
+  else if(d.col){const[ty,c]=P(d.col);S.colors[ty]=c;save();applyColors();render()}
+  else if(d.labsave){const ai=+d.labsave,a=A[ai];a.label=a.label||{};
+    const k=num(document.getElementById('lk-'+ai).value),du=parseDur(document.getElementById('ld-'+ai).value);
+    if(!(k>0)||!(du>0)){ui.qrMsg={ai,t:'Indiquez la consommation pour 100 cycles et la durée, par exemple 49 et 3:28.'};render();return}
+    a.label.k100=k;a.label.dur=du;let c=a.cycles.find(isLabel);
+    if(!c){c=mkC(labelCycleName(a),du,k/100);c.source='label';a.cycles.unshift(c)}else{c.dur=du;c.kwh=k/100;c.name=labelCycleName(a)}
+    ui.qrMsg={ai,t:'Programme officiel enregistré : '+fK(k/100)+' kWh par cycle, '+fDur(du)+'.'};save();render()}
+  else if(d.target){S.target=d.target;ui.pick=null;save();render()}
+  else if(d.themeSet){S.theme=d.themeSet;save();applyTheme();render()}
+  else if(d.colreset!==undefined){S.colors={hsc:null,hc:null,hp:null};save();applyColors();render()}
+  else if(d.export!==undefined){const code=exportCode();ui.exportShow=true;
+    const done=m=>{ui.exportMsg=m;render()};
+    try{navigator.clipboard.writeText(code).then(()=>done('Code copié.'),()=>done('Sélectionnez le code ci-dessous et copiez-le.'))}catch(e){done('Sélectionnez le code ci-dessous et copiez-le.')}}
+  else if(d.import!==undefined){try{importCode(document.getElementById('importBox').value);ui.importMsg='Réglages importés.'}catch(e){ui.importMsg='Code non reconnu : copiez-le en entier depuis la version gratuite.'}render()}
+  else if(d.log){const now=getNow(),ap=curAppl(),cyc=curCycle(ap);
+    const sel=choose(candidates(now,cyc.dur,ap,windows(now)),now);if(!sel)return;const ec=economics(cyc,sel,ap);
+    H.push({id:'h'+Date.now(),t:sel.st,appl:ap.name,cycle:cyc.name,est:!isLabel(cyc),kwh:ec?ec.kwh:cycKwh(ap,cyc),cost:ec?ec.cost:null,saving:ec?ec.saving:null});ui.logged=sel.st+cyc.id;save();render()}
+  else if(d.hdel){H=H.filter(x=>x.id!==d.hdel);save();render()}
+  else if(d.fav){const[ai,ci]=P(d.fav).map(Number),cs=A[ai].cycles,was=cs[ci].fav;cs.forEach(c=>c.fav=false);cs[ci].fav=!was;save();render()}
+  else if(d.cdel){const[ai,ci]=P(d.cdel).map(Number);A[ai].cycles.splice(ci,1);save();render()}
+  else if(d.cadd&&(pro()||A[+d.cadd].cycles.length<FREE_CYCLES)){A[+d.cadd].cycles.push(mkC('Nouveau cycle',60,null));save();render()}
+  else if(d.aadd!==undefined&&pro()){A.push({id:'a'+Date.now(),name:'Nouvel appareil',power:0.5,mode:'start',minDelay:1,maxDelay:24,step:60,noDelay:false,cycles:[mkC('Cycle',60,null,true)]});save();render()}
+  else if(d.adel&&pro()){A.splice(+d.adel,1);if(!A.find(a=>a.id===ui.applId))ui.applId=A[0]&&A[0].id;save();render()}
+  else if(d.amode){const[ai,m]=P(d.amode);A[+ai].mode=m;save();render()}
+  else if(d.radd){const[si,ty]=P(d.radd);(S.seasons[+si][ty]=S.seasons[+si][ty]||[]).push(['00:00','01:00']);S.offerId='custom';save();render()}
+  else if(d.rdel){const[si,ty,ri]=P(d.rdel);S.seasons[+si][ty].splice(+ri,1);S.offerId='custom';save();render()}
+  else if(d.sadd!==undefined){S.seasons.push({name:'Nouvelle période',from:'01/01',to:'31/12',hsc:[],hc:[],hp:[],price:{hsc:null,hc:null,hp:null}});S.offerId='custom';save();render()}
+  else if(d.sdel){S.seasons.splice(+d.sdel,1);S.offerId='custom';save();render()}
+  else if(d.reset!==undefined){if(ui.resetArmed){S=clone(DEF_SETTINGS);A=clone(DEF_APPL);ui.applId=A[0].id;ui.resetArmed=false;save();applyTheme();applyColors()}else ui.resetArmed=true;render()}
+});
+
+app.addEventListener('change',e=>{const t=e.target,d=t.dataset;
+  if(d.qr&&t.files&&t.files[0]){scanQR(+d.qr,t.files[0]);return}
+  if(d.lreg){const a=A[+d.lreg];a.label=a.label||{};const r=parseReg(t.value);a.label.reg=r;ui.qrMsg=r?null:{ai:+d.lreg,t:'Numéro non reconnu : collez le lien complet du QR code ou le numéro de la fiche.'};save();render();return}
+  if(t.id==='mDate'){ui.mDate=t.value;render();return}
+  if(t.id==='mTime'){ui.mTime=t.value;render();return}
+  if(t.id==='endAt'){ui.endAt=t.value;ui.pick=null;render();return}
+  if(d.colpick){S.colors[d.colpick]=t.value;save();applyColors();render();return}
+  if(t.id==='margin'){S.margin=Math.max(0,+t.value||0);save();return}
+  if(t.id==='offer'){const o=OFFERS[t.value];if(!o||(o.pro&&!pro()))return;S.offerId=t.value;S.tempo=!!o.tempo;if(o.seasons)S.seasons=clone(o.seasons);save();render();if(S.tempo)fetchTempo();return}
+  if(d.tp){const[c,ty]=P(d.tp);S.tempoPrices[c][ty]=num(t.value);save();return}
+  if(d.price){const[si,ty]=P(d.price);const s=S.seasons[+si];s.price=s.price||{};s.price[ty]=num(t.value);save();return}
+  if(d.aname){A[+d.aname].name=t.value.trim()||'Appareil';save();return}
+  if(d.apow){A[+d.apow].power=Math.max(0,num(t.value)||0);save();render();return}
+  if(d.nodelay){A[+d.nodelay].noDelay=t.checked;save();render();return}
+  if(d.amin){A[+d.amin].minDelay=Math.max(0,+t.value||0);save();return}
+  if(d.amax){A[+d.amax].maxDelay=Math.max(1,+t.value||1);save();return}
+  if(d.astep){A[+d.astep].step=+t.value;save();return}
+  if(d.cname){const[ai,ci]=P(d.cname).map(Number);A[ai].cycles[ci].name=t.value.trim()||'Cycle';save();return}
+  if(d.ckwh){const[ai,ci]=P(d.ckwh).map(Number),c=A[ai].cycles[ci],v=num(t.value);c.kwh=v>0?v:null;c.kwhSet=c.kwh!=null;save();render();return}
+  if(d.ch||d.cm){const[ai,ci]=P(d.ch||d.cm).map(Number),c=A[ai].cycles[ci];
+    const hh=d.ch?+t.value||0:Math.floor(c.dur/60),mm=d.cm?+t.value||0:c.dur%60;c.dur=Math.max(5,hh*60+Math.min(59,mm));save();render();return}
+  if(d.sname){S.seasons[+d.sname].name=t.value;save();return}
+  if(d.sfrom){S.seasons[+d.sfrom].from=t.value;S.offerId='custom';save();return}
+  if(d.sto){S.seasons[+d.sto].to=t.value;S.offerId='custom';save();return}
+  if(d.r){const[si,ty,ri,p]=P(d.r);S.seasons[+si][ty][+ri][+p]=t.value;S.offerId='custom';save();return}
+});
+
+setInterval(()=>{if(ui.tab==='calc'&&ui.timeMode==='phone'&&!document.activeElement.matches('input,select'))render()},30000);
+applyTheme();applyColors();render();fetchTempo();
+</script>
+
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))}</script>
+</body>
+</html>
