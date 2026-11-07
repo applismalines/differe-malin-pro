@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Différé Malin Pro</title>
-<meta name="description" content="Le différé à régler sur vos appareils pour les lancer pendant les heures les moins chères.">
+<meta name="description" content="Le différé à régler sur tes appareils pour les lancer pendant les heures les moins chères.">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#1d2066">
 <link rel="icon" href="icon-192.png" type="image/png">
@@ -71,6 +71,10 @@ input[type=number]{width:5em}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
 .btn.danger{color:var(--warn)}
 .btn.small{padding:5px 10px;font-size:.85rem}
+.btn.done{background:transparent;border-color:var(--ok);color:var(--ok);cursor:default;animation:pop .35s ease-out}
+@keyframes pop{0%{transform:scale(.92)}60%{transform:scale(1.05)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion: reduce){.btn.done{animation:none}}
+[data-unlog]{min-height:44px}
 .icon-btn{border:0;background:none;padding:6px 8px;border-radius:8px;color:var(--muted);font-size:1.1rem;line-height:1}
 .badge-pro{font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--pro);background:var(--pro-bg);border-radius:6px;padding:2px 6px}
 
@@ -160,11 +164,11 @@ const OFFERS={
   'zen-estival':{label:'EDF Zen Estival',note:'Horaires et prix TTC 6 kVA vérifiés au 1er novembre 2026.',tempo:false,seasons:[
     {name:'Hiver',from:'01/11',to:'31/03',hsc:[['22:00','07:00']],hc:[['11:00','18:00']],hp:[['07:00','11:00'],['18:00','22:00']],price:{hsc:0.1992,hc:0.2131,hp:0.2722}},
     {name:'Été',from:'01/04',to:'31/10',hsc:[['11:00','18:00']],hc:[['22:00','07:00']],hp:[['07:00','11:00'],['18:00','22:00']],price:{hsc:0.0991,hc:0.1405,hp:0.1588}}]},
-  'hphc':{label:'Heures creuses classiques',note:'Exemple 22h–6h : recopiez les horaires de votre facture et vos prix.',tempo:false,seasons:[
+  'hphc':{label:'Heures creuses classiques',note:'Exemple 22h–6h : recopie les horaires de ta facture et tes prix.',tempo:false,seasons:[
     {name:'Toute l\'année',from:ALLDAY[0],to:ALLDAY[1],hsc:[],hc:[['22:00','06:00']],hp:[['06:00','22:00']],price:{hsc:null,hc:null,hp:null}}]},
-  'tempo':{label:'EDF Tempo',note:'Heures creuses 22h–6h. Renseignez les prix de chaque couleur.',tempo:true,pro:true,seasons:[
+  'tempo':{label:'EDF Tempo',note:'Heures creuses 22h–6h. Renseigne les prix de chaque couleur.',tempo:true,pro:true,seasons:[
     {name:'Toute l\'année',from:ALLDAY[0],to:ALLDAY[1],hsc:[],hc:[['22:00','06:00']],hp:[['06:00','22:00']],price:{hsc:null,hc:null,hp:null}}]},
-  'custom':{label:'Personnalisée',note:'Vos propres plages et prix.',tempo:false,seasons:null}
+  'custom':{label:'Personnalisée',note:'Tes propres plages et prix.',tempo:false,seasons:null}
 };
 const DEF_SETTINGS={theme:'auto',target:'auto',offerId:'zen-estival',margin:10,seasons:JSON.parse(JSON.stringify(OFFERS['zen-estival'].seasons)),tempo:false,
   tempoPrices:{bleu:{hc:null,hp:null},blanc:{hc:null,hp:null},rouge:{hc:null,hp:null}}};
@@ -199,8 +203,8 @@ async function scanQR(ai,file){const a=A[ai];a.label=a.label||{};
   try{if(!('BarcodeDetector' in window))throw new Error('nosupport');
     const bd=new BarcodeDetector({formats:['qr_code']});const r=await bd.detect(await createImageBitmap(file));
     const reg=r.length?parseReg(r[0].rawValue):null;if(!reg)throw new Error('nocode');
-    a.label.reg=reg;save();ui.qrMsg={ai,t:'QR code lu : fiche officielle n° '+reg+'. Ouvrez-la et recopiez les deux valeurs ci-dessous.'}}
-  catch(e){ui.qrMsg={ai,t:e.message==='nosupport'?"Ce téléphone ne lit pas les QR codes dans l'appli. Scannez l'étiquette avec l'appareil photo, puis collez le lien obtenu dans le champ.":"Aucun QR code d'étiquette énergie trouvé sur la photo. Reprenez-la plus près, bien à plat."}}
+    a.label.reg=reg;save();ui.qrMsg={ai,t:'QR code lu : fiche officielle n° '+reg+'. Ouvre-la et recopie les deux valeurs ci-dessous.'}}
+  catch(e){ui.qrMsg={ai,t:e.message==='nosupport'?"Ce téléphone ne lit pas les QR codes dans l'appli. Scanne l'étiquette avec l'appareil photo, puis colle le lien obtenu dans le champ.":"Aucun QR code d'étiquette énergie trouvé sur la photo. Reprends-la plus près, bien à plat."}}
   render()}
 if(!S.colors)S.colors={hsc:null,hc:null,hp:null};
 if(!S.theme)S.theme='auto';
@@ -294,6 +298,8 @@ function getNow(){if(ui.timeMode==='phone')return Date.now();
   if(!d||t==null)return Date.now();return new Date(+d[1],+d[2]-1,+d[3],0,t).getTime()}
 const curAppl=()=>visAppl().find(a=>a.id===ui.applId)||visAppl()[0];
 const curCycle=ap=>{const cs=visCycles(ap);return cs.find(c=>c.id===ui.cycleId)||cs.find(c=>c.fav)||cs[0]};
+/* Cycle déjà noté : le bouton reste « ajouté » jusqu'à la fin du cycle (15 min minimum), même après fermeture de l'appli */
+const recentLog=(ap,cyc)=>{const n=Date.now();for(let i=H.length-1;i>=0;i--){const x=H[i];if(x.ap===ap.id&&x.cid===cyc.id&&x.at&&n<Math.max(x.at+15*6e4,x.en||0))return x}return null};
 
 const app=document.getElementById('app');
 const proTag=()=>`<span class="badge-pro">Pro</span>`;
@@ -302,7 +308,7 @@ function tempoBanner(now){if(!pro()||!S.tempo)return '';
   const td=tempoDay(now),tm=ymd(addDays(new Date(td+'T12:00'),1).getTime()),cT=ui.tempo[td],cM=ui.tempo[tm];
   const pill=c=>`<span class="tpill tp-${c||'inconnu'}">${c?COLORS[c]:'inconnu'}</span>`;
   let h=`<div class="panel ${cM==='rouge'?'banner-rouge':''}"><div class="tempo"><span>Aujourd'hui ${pill(cT)}</span><span>Demain ${pill(cM)}</span></div>`;
-  if(cM==='rouge')h+=`<p class="alert">Demain est un jour rouge : les heures pleines coûtent très cher. Lancez vos machines cette nuit.</p>`;
+  if(cM==='rouge')h+=`<p class="alert">Demain est un jour rouge : les heures pleines coûtent très cher. Lance tes machines cette nuit.</p>`;
   if(!cM)h+=`<div class="row"><span class="note">Couleur de demain non publiée (annonce vers 11h). La fixer :</span>${Object.keys(COLORS).map(c=>`<button class="btn small" data-tman="${tm}|${c}">${COLORS[c]}</button>`).join('')}</div>`;
   return h+`</div>`}
 
@@ -316,7 +322,7 @@ function renderCalc(){
   h+=ui.timeMode==='phone'?`<div style="font-family:var(--mono);font-size:1.6rem">${fT(now)} <span class="muted" style="font-size:.9rem;font-family:var(--body)">${new Date(now).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})}</span></div>`
     :`<div class="row"><input type="date" id="mDate" value="${esc(ui.mDate)}" aria-label="Date"><input type="time" id="mTime" value="${esc(ui.mTime)}" aria-label="Heure"></div>`;
   h+=`</div>`;
-  if(!ap){app.innerHTML=h+`<p class="alert">Ajoutez un appareil dans l'onglet Appareils.</p>`;return}
+  if(!ap){app.innerHTML=h+`<p class="alert">Ajoute un appareil dans l'onglet Appareils.</p>`;return}
   const cyc=curCycle(ap);
   h+=`<div class="panel">`;
   if(visAppl().length>1)h+=`<span class="eyebrow">Appareil</span><div class="chips">${visAppl().map(a=>`<button class="chip" data-appl="${esc(a.id)}" aria-pressed="${a.id===ap.id}">${esc(a.name)}</button>`).join('')}</div>`;
@@ -345,15 +351,15 @@ function renderCalc(){
         const est=!isLabel(cyc),ap_=est?'≈ ':'',srcT=est?'<b>estimation</b>':'<b>valeur officielle de l\'étiquette</b>';
         if(ec&&sel.w.type==='hp')h+=`<p class="note">Cycle en heures pleines : coût ${ap_}${eur(ec.cost)}, pas d'économie · ${fK(ec.kwh)} kWh · ${srcT}</p>`;
         else if(ec)h+=`<div class="saving"><strong>${ap_}${eur(ec.saving)}</strong><span>d'économie${est?' estimée':''} par rapport aux heures pleines</span></div><p class="note">Coût du cycle ${ap_}${eur(ec.cost)} au lieu de ${ap_}${eur(ec.peak)} · ${fK(ec.kwh)} kWh · ${srcT}${S.tempo?' · jour '+(tempoColor(sel.st)?COLORS[tempoColor(sel.st)].toLowerCase():'bleu (supposé)'):''}</p>`;
-        else h+=`<p class="note">Renseignez vos prix dans Réglages et la consommation du cycle pour voir l'économie.</p>`;
+        else h+=`<p class="note">Renseigne tes prix dans Réglages et la consommation du cycle pour voir l'économie.</p>`;
       }else h+=teaser();
-      h+=`<div class="row">${ui.logged===sel.st+cyc.id?`<span class="status" style="color:var(--ok);font-weight:700">✓ Cycle enregistré</span>`:`<button class="btn primary" data-log="${sel.k}">J'ai lancé ce cycle</button>`}
+      h+=`<div class="row">${(()=>{const lg=recentLog(ap,cyc);return lg?`<button class="btn done" disabled>✓ Ajouté à l'historique</button><button class="btn small" data-unlog="${esc(lg.id)}">Annuler</button><span class="note" role="status">à ${fT(lg.at)}</span>`:`<button class="btn primary" data-log="${sel.k}">J'ai lancé ce cycle</button>`})()}
         ${pro()&&sel.launch?`<a class="btn" target="_blank" rel="noopener" href="${gcalLink('Lancer '+ap.name+' – '+cyc.name,sel.st)}">Rappel dans l'agenda</a>`:''}</div></div>`}
     if(res.length>1){const L=[...res].reverse();const show=sel.launch?L.filter((r,i)=>i%6===0||r===sel):L;
       h+=`<div class="panel"><span class="eyebrow">Autres possibilités (du plus tardif au plus tôt)</span><div class="chips">${show.map(r=>`<button class="chip" data-pick="${r.k}" aria-pressed="${r===sel}">${r.launch?fT(r.st):fDur(r.k)} <span class="muted" style="font-size:.8em">fin ${fT(r.en)}</span></button>`).join('')}</div></div>`}
   }else{
     let msg='',found=null;const longest=Math.max(0,...ws.map(w=>(w.e-w.s)/6e4));
-    if(!ws.length)msg=`Votre offre n'a pas d'heures ${TYPES[S.target].toLowerCase()} sur cette période. Choisissez une autre plage.`;
+    if(!ws.length)msg=`Ton offre n'a pas d'heures ${TYPES[S.target].toLowerCase()} sur cette période. Choisis une autre plage.`;
     else if(longest<cyc.dur+2*S.margin)msg=`Ce cycle (${fDur(cyc.dur)}) est plus long que ${targetLbl()} (${fDur(Math.round(longest))}).`;
     else{const ws2=windows(now,5);for(let t=now+5*6e4;t<now+48*36e5;t+=5*6e4){if(candidates(t,cyc.dur,ap,ws2).length){found=t;break}}
       msg=`Aucun différé entre ${ap.minDelay} h et ${ap.maxDelay} h ne fait tenir ce cycle dans ${targetLbl()}.`+(found?` Possible à partir de ${fT(found)} (${esc(dayLbl(found,now))}).`:'')}
@@ -381,17 +387,17 @@ function trialBanner(){if(BUILD_PRO)return '';const n=trialLeft();
   return ''}
 function teaser(){const n=H.length;
   return `<div class="saving"><strong style="color:var(--fg)">${n}</strong><span>cycle${n>1?'s':''} lancé${n>1?'s':''} aux heures les moins chères</span></div>
-    <div class="row"><span>Vos économies : <b>🔒 ••,•• €</b></span><a class="btn small" href="${PRO_STORE_URL}" target="_blank" rel="noopener">Voir avec Pro</a></div>`}
+    <div class="row"><span>Tes économies : <b>🔒 ••,•• €</b></span><a class="btn small" href="${PRO_STORE_URL}" target="_blank" rel="noopener">Voir avec Pro</a></div>`}
 function proCard(){return `<div class="panel pro-card"><div class="row"><h2>Différé Malin Pro</h2>${proTag()}</div><ul>
-  <li>Vos économies à chaque cycle, du mois et de l'année</li><li>Lave-vaisselle, sèche-linge et autres appareils</li>
+  <li>Tes économies à chaque cycle, du mois et de l'année</li><li>Lave-vaisselle, sèche-linge et autres appareils</li>
   <li>Cycles illimités</li><li>Offre Tempo avec alerte la veille des jours rouges</li>
   <li>Fin du cycle à l'heure choisie (réveil, retour du travail)</li><li>Rappel dans l'agenda pour les appareils sans différé</li>
-  <li>Vos propres couleurs pour chaque plage</li></ul>
+  <li>Tes propres couleurs pour chaque plage</li></ul>
   <div class="row"><a class="btn primary" href="${PRO_STORE_URL}" target="_blank" rel="noopener">Passer à Pro · ${PRICE_LABEL}</a><span class="note">Achat unique, sans abonnement.</span></div>
-  <p class="note">Vos cycles se transfèrent dans Pro : Réglages, « Transférer mes réglages ».</p></div>`}
+  <p class="note">Tes cycles se transfèrent dans Pro : Réglages, « Transférer mes réglages ».</p></div>`}
 
 function renderAppl(){
-  let h=`<h1>${pro()?'Appareils':'Cycles'}</h1><p class="note">L'étoile marque le cycle proposé par défaut. Les durées et consommations préremplies sont des exemples : remplacez-les par celles de vos appareils.</p>`;
+  let h=`<h1>${pro()?'Appareils':'Cycles'}</h1><p class="note">L'étoile marque le cycle proposé par défaut. Les durées et consommations préremplies sont des exemples : remplace-les par celles de tes appareils.</p>`;
   visAppl().forEach((a,ai)=>{
     h+=`<div class="panel">`;
     if(pro())h+=`<div class="row between"><input id="an-${ai}" data-aname="${ai}" value="${esc(a.name)}" style="font-weight:700;flex:1" aria-label="Nom de l'appareil">${A.length>1?`<button class="icon-btn" data-adel="${ai}" aria-label="Supprimer l'appareil">✕</button>`:''}</div>`;
@@ -425,7 +431,7 @@ function renderAppl(){
       ${full?`<div class="row"><button class="btn small" disabled>+ cycle</button><span class="note">Plus de ${FREE_CYCLES} cycles avec ${proTag()}</span></div>`:`<button class="btn small" style="align-self:flex-start" data-cadd="${ai}">+ cycle</button>`}</div>`;
   });
   if(!pro()&&A.length>1)h+=`<p class="note">${A.length-1} autre${A.length>2?'s':''} appareil${A.length>2?'s':''} enregistré${A.length>2?'s':''} pendant l'essai : ${A.slice(1).map(a=>esc(a.name)).join(', ')}.</p>`;
-  h+=pro()?`<button class="btn primary" data-aadd>Ajouter un appareil</button><p class="note">kWh « auto » : puissance moyenne de l'appareil × durée du cycle, recalculé quand vous changez la durée. Pour plus de précision, saisissez la consommation réelle (notice, étiquette énergie, ou prise wattmètre) ; videz le champ pour revenir à l'estimation.</p>`:proCard();
+  h+=pro()?`<button class="btn primary" data-aadd>Ajouter un appareil</button><p class="note">kWh « auto » : puissance moyenne de l'appareil × durée du cycle, recalculé quand tu changes la durée. Pour plus de précision, saisis la consommation réelle (notice, étiquette énergie, ou prise wattmètre) ; vide le champ pour revenir à l'estimation.</p>`:proCard();
   app.innerHTML=h;
 }
 
@@ -437,11 +443,11 @@ function renderHist(){
     <div class="stat"><span class="eyebrow">Ce mois</span>${P_?`<b>${eur(sum(m0))}</b>`:lock}</div>
     <div class="stat"><span class="eyebrow">Cette année</span>${P_?`<b>${eur(sum(y0))}</b>`:lock}</div>
     <div class="stat"><span class="eyebrow">Cycles</span><b>${H.length}</b></div></div>
-    <p class="note">${P_?'Comparé au même cycle lancé en heures pleines. Les montants précédés de ≈ sont des estimations ; seuls les programmes enregistrés depuis l\'étiquette énergie utilisent la consommation officielle.':'Vos cycles sont bien enregistrés. Les montants économisés s\'affichent avec la version Pro.'}</p></div>`;
+    <p class="note">${P_?'Comparé au même cycle lancé en heures pleines. Les montants précédés de ≈ sont des estimations ; seuls les programmes enregistrés depuis l\'étiquette énergie utilisent la consommation officielle.':'Tes cycles sont bien enregistrés. Les montants économisés s\'affichent avec la version Pro.'}</p></div>`;
   if(!P_){h+=proCard()+`<div class="panel"><span class="eyebrow">Derniers cycles</span><div class="hist">${[...H].sort((a,b)=>b.t-a.t).slice(0,30).map(x=>`
     <div><div>${esc(x.appl)} · ${esc(x.cycle)}</div><div class="when">${new Date(x.t).toLocaleDateString('fr-FR',{day:'numeric',month:'short'})} ${fT(x.t)}</div></div>
     <b class="muted">🔒</b><button class="icon-btn" data-hdel="${x.id}" aria-label="Supprimer">✕</button>`).join('')||'<p class="note">Aucun cycle enregistré pour l\'instant.</p>'}</div></div>`;app.innerHTML=h;return}
-  if(!H.length)h+=`<div class="panel"><p class="note">Aucun cycle enregistré. Après avoir programmé la machine, touchez « J'ai lancé ce cycle » dans l'onglet Calcul.</p></div>`;
+  if(!H.length)h+=`<div class="panel"><p class="note">Aucun cycle enregistré. Après avoir programmé la machine, touche « J'ai lancé ce cycle » dans l'onglet Calcul.</p></div>`;
   else h+=`<div class="panel"><span class="eyebrow">Derniers cycles</span><div class="hist">${[...H].sort((a,b)=>b.t-a.t).slice(0,60).map(x=>`
     <div><div>${esc(x.appl)} · ${esc(x.cycle)}</div><div class="when">${new Date(x.t).toLocaleDateString('fr-FR',{day:'numeric',month:'short'})} ${fT(x.t)}</div></div>
     <b style="color:var(--ok)">${x.saving!=null?(x.est===false?'':'≈ ')+eur(x.saving):'–'}</b><button class="icon-btn" data-hdel="${x.id}" aria-label="Supprimer">✕</button>`).join('')}</div></div>`;
@@ -452,7 +458,7 @@ function priceInput(id,attr,v,locked){return `<input type="text" inputmode="deci
 function renderSettings(){
   const off=OFFERS[S.offerId]||OFFERS.custom;
   let h=`<h1>Réglages</h1><div class="panel"><h2>Affichage</h2><div class="seg" style="align-self:flex-start">${[['auto','Automatique'],['light','Fond blanc'],['dark','Fond noir']].map(([k,l])=>`<button data-theme-set="${k}" aria-pressed="${S.theme===k}">${l}</button>`).join('')}</div><p class="note">Automatique suit le réglage du téléphone.</p></div>
-  <div class="panel"><h2>Lancer les programmes en heures</h2>${targetSeg()}<p class="note">Auto vise les heures super creuses si votre offre en a, sinon les heures creuses. Ce choix se retrouve aussi sur l'écran Calcul.</p></div>
+  <div class="panel"><h2>Lancer les programmes en heures</h2>${targetSeg()}<p class="note">Auto vise les heures super creuses si ton offre en a, sinon les heures creuses. Ce choix se retrouve aussi sur l'écran Calcul.</p></div>
   <div class="panel"><h2>Offre d'électricité</h2>
     <select id="offer" aria-label="Offre">${Object.entries(OFFERS).map(([k,o])=>`<option value="${k}"${S.offerId===k?' selected':''}${o.pro&&!pro()?' disabled':''}>${o.label}${o.pro&&!pro()?' (Pro)':''}</option>`).join('')}</select>
     <p class="note">${esc(off.note)} Changer d'offre remplace les plages ci-dessous.</p>
@@ -480,7 +486,7 @@ function renderSettings(){
 }
 
 function renderColors(){
-  if(!pro())return `<div class="panel locked"><div class="row"><h2>Couleurs des plages</h2>${proTag()}</div><p class="note">Choisissez la couleur des heures super creuses, creuses et pleines.</p></div>`;
+  if(!pro())return `<div class="panel locked"><div class="row"><h2>Couleurs des plages</h2>${proTag()}</div><p class="note">Choisis la couleur des heures super creuses, creuses et pleines.</p></div>`;
   const cs=getComputedStyle(document.documentElement);
   let h=`<div class="panel"><div class="row between"><h2>Couleurs des plages</h2><button class="btn small" data-colreset>Couleurs d'origine</button></div>`;
   for(const ty of ['hsc','hc','hp']){const cur=(S.colors[ty]||cs.getPropertyValue('--'+ty).trim()).toLowerCase();
@@ -490,9 +496,9 @@ function renderColors(){
   return h+`<p class="note">Ces couleurs s'appliquent à la frise, aux pastilles et à la légende.</p></div>`}
 
 function renderTransfer(){
-  let h=`<div class="panel"><h2>Transférer mes réglages</h2><p class="note">${BUILD_PRO?'Collez ici le code copié depuis la version gratuite pour récupérer vos cycles, horaires et historique.':'Copiez ce code puis collez-le dans Différé Malin Pro (Réglages) pour retrouver vos cycles, horaires et historique.'}</p>`;
+  let h=`<div class="panel"><h2>Transférer mes réglages</h2><p class="note">${BUILD_PRO?'Colle ici le code copié depuis la version gratuite pour récupérer tes cycles, horaires et historique.':'Copie ce code puis colle-le dans Différé Malin Pro (Réglages) pour retrouver tes cycles, horaires et historique.'}</p>`;
   if(!BUILD_PRO)h+=`<div class="row"><button class="btn" data-export>Copier le code</button>${ui.exportMsg?`<span class="note">${esc(ui.exportMsg)}</span>`:''}</div>${ui.exportShow?`<textarea id="exportBox" readonly rows="3" style="width:100%;font:12px var(--mono);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px">${esc(exportCode())}</textarea>`:''}`;
-  else h+=`<textarea id="importBox" rows="3" placeholder="Collez le code ici" style="width:100%;font:12px var(--mono);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px"></textarea>
+  else h+=`<textarea id="importBox" rows="3" placeholder="Colle le code ici" style="width:100%;font:12px var(--mono);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px"></textarea>
     <div class="row"><button class="btn" data-import>Importer</button>${ui.importMsg?`<span class="note">${esc(ui.importMsg)}</span>`:''}</div>`;
   return h+`</div>`}
 function exportCode(){const json=JSON.stringify({v:1,S,A,H});return 'DL1:'+btoa(unescape(encodeURIComponent(json)))}
@@ -523,7 +529,7 @@ app.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return
   else if(d.col){const[ty,c]=P(d.col);S.colors[ty]=c;save();applyColors();render()}
   else if(d.labsave){const ai=+d.labsave,a=A[ai];a.label=a.label||{};
     const k=num(document.getElementById('lk-'+ai).value),du=parseDur(document.getElementById('ld-'+ai).value);
-    if(!(k>0)||!(du>0)){ui.qrMsg={ai,t:'Indiquez la consommation pour 100 cycles et la durée, par exemple 49 et 3:28.'};render();return}
+    if(!(k>0)||!(du>0)){ui.qrMsg={ai,t:'Indique la consommation pour 100 cycles et la durée, par exemple 49 et 3:28.'};render();return}
     a.label.k100=k;a.label.dur=du;let c=a.cycles.find(isLabel);
     if(!c){c=mkC(labelCycleName(a),du,k/100);c.source='label';a.cycles.unshift(c)}else{c.dur=du;c.kwh=k/100;c.name=labelCycleName(a)}
     ui.qrMsg={ai,t:'Programme officiel enregistré : '+fK(k/100)+' kWh par cycle, '+fDur(du)+'.'};save();render()}
@@ -532,11 +538,13 @@ app.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return
   else if(d.colreset!==undefined){S.colors={hsc:null,hc:null,hp:null};save();applyColors();render()}
   else if(d.export!==undefined){const code=exportCode();ui.exportShow=true;
     const done=m=>{ui.exportMsg=m;render()};
-    try{navigator.clipboard.writeText(code).then(()=>done('Code copié.'),()=>done('Sélectionnez le code ci-dessous et copiez-le.'))}catch(e){done('Sélectionnez le code ci-dessous et copiez-le.')}}
-  else if(d.import!==undefined){try{importCode(document.getElementById('importBox').value);ui.importMsg='Réglages importés.'}catch(e){ui.importMsg='Code non reconnu : copiez-le en entier depuis la version gratuite.'}render()}
+    try{navigator.clipboard.writeText(code).then(()=>done('Code copié.'),()=>done('Sélectionne le code ci-dessous et copie-le.'))}catch(e){done('Sélectionne le code ci-dessous et copie-le.')}}
+  else if(d.import!==undefined){try{importCode(document.getElementById('importBox').value);ui.importMsg='Réglages importés.'}catch(e){ui.importMsg='Code non reconnu : copie-le en entier depuis la version gratuite.'}render()}
   else if(d.log){const now=getNow(),ap=curAppl(),cyc=curCycle(ap);
     const sel=choose(candidates(now,cyc.dur,ap,windows(now)),now);if(!sel)return;const ec=economics(cyc,sel,ap);
-    H.push({id:'h'+Date.now(),t:sel.st,appl:ap.name,cycle:cyc.name,est:!isLabel(cyc),kwh:ec?ec.kwh:cycKwh(ap,cyc),cost:ec?ec.cost:null,saving:ec?ec.saving:null});ui.logged=sel.st+cyc.id;save();render()}
+    H.push({id:'h'+Date.now(),t:sel.st,at:Date.now(),en:sel.en,ap:ap.id,cid:cyc.id,appl:ap.name,cycle:cyc.name,est:!isLabel(cyc),kwh:ec?ec.kwh:cycKwh(ap,cyc),cost:ec?ec.cost:null,saving:ec?ec.saving:null});save();
+    try{navigator.vibrate&&navigator.vibrate(40)}catch(e){}render()}
+  else if(d.unlog){H=H.filter(x=>x.id!==d.unlog);save();render()}
   else if(d.hdel){H=H.filter(x=>x.id!==d.hdel);save();render()}
   else if(d.fav){const[ai,ci]=P(d.fav).map(Number),cs=A[ai].cycles,was=cs[ci].fav;cs.forEach(c=>c.fav=false);cs[ci].fav=!was;save();render()}
   else if(d.cdel){const[ai,ci]=P(d.cdel).map(Number);A[ai].cycles.splice(ci,1);save();render()}
@@ -553,7 +561,7 @@ app.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return
 
 app.addEventListener('change',e=>{const t=e.target,d=t.dataset;
   if(d.qr&&t.files&&t.files[0]){scanQR(+d.qr,t.files[0]);return}
-  if(d.lreg){const a=A[+d.lreg];a.label=a.label||{};const r=parseReg(t.value);a.label.reg=r;ui.qrMsg=r?null:{ai:+d.lreg,t:'Numéro non reconnu : collez le lien complet du QR code ou le numéro de la fiche.'};save();render();return}
+  if(d.lreg){const a=A[+d.lreg];a.label=a.label||{};const r=parseReg(t.value);a.label.reg=r;ui.qrMsg=r?null:{ai:+d.lreg,t:'Numéro non reconnu : colle le lien complet du QR code ou le numéro de la fiche.'};save();render();return}
   if(t.id==='mDate'){ui.mDate=t.value;render();return}
   if(t.id==='mTime'){ui.mTime=t.value;render();return}
   if(t.id==='endAt'){ui.endAt=t.value;ui.pick=null;render();return}

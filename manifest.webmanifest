@@ -2,7 +2,7 @@
   "name": "Différé Malin Pro",
   "short_name": "Malin Pro",
   "lang": "fr",
-  "description": "Le différé à régler sur vos appareils pour les lancer pendant les heures les moins chères.",
+  "description": "Le différé à régler sur tes appareils pour les lancer pendant les heures les moins chères.",
   "id": "./?app=differe-malin-pro",
   "start_url": "./",
   "scope": "./",
